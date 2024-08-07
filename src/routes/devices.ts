@@ -7,7 +7,7 @@ export const deviceRoutes = (): Router => {
 
   devices.get("/whoami", isDeviceAuthenticated(), ({ client_device }, res) => {
     const result = ServiceResult()
-      .setData(client_device.clean())
+      .setData(client_device!.clean())
       .setCode(200)
       .setStatus("Device details fetched successfully.")
       .build();

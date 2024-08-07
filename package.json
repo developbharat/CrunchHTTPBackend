@@ -11,6 +11,7 @@
     "scripts:seed-voters": "bun --env-file=.env.development run scripts/seed-voters.ts"
   },
   "dependencies": {
+    "argon2": "^0.40.3",
     "express": ">=5.0.0-beta.1",
     "fastest-validator": "^1.19.0",
     "nanoid": "^5.0.7",
