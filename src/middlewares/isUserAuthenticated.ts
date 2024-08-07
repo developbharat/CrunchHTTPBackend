@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { ServiceException } from "../common/exceptions";
 import { UserAccount } from "../db/entities/UserAccount";
 
-export const isAuthenticated = () => {
+export const isUserAuthenticated = () => {
   return async (req: Request, _res: Response, next: NextFunction) => {
     // validate auth token
     const auth_token = req.headers["authorization"];

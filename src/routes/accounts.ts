@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { ServiceResult } from "../common/ServiceResult";
 import { UserAccount } from "../db/entities/UserAccount";
-import { isAuthenticated } from "../middlewares/isAuthenticated";
+import { isUserAuthenticated } from "../middlewares/isUserAuthenticated";
 import { isValid } from "../middlewares/isValid";
 
 export const accountRoutes = (): Router => {
   const accounts = Router();
 
-  accounts.get("/whoami", isAuthenticated(), ({ user_account }, res) => {
+  accounts.get("/whoami", isUserAuthenticated(), ({ user_account }, res) => {
     const result = ServiceResult()
       .setData(user_account!.clean())
       .setCode(200)

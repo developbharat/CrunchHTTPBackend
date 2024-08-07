@@ -4,8 +4,8 @@ import { DataSource } from "typeorm";
 import { fileURLToPath } from "url";
 import { env } from "../common/env";
 import { ClientDevice } from "./entities/ClientDevice";
-import { HttpRequest } from "./entities/HttpRequest";
-import { HttpResponse } from "./entities/HttpResponse";
+import { HttpTask } from "./entities/HttpTask";
+import { HttpTaskResponse } from "./entities/HttpTaskResponse";
 import { UserAccount } from "./entities/UserAccount";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,7 +15,7 @@ export const MainDataSource = new DataSource({
   synchronize: true,
   logging: true,
   // entities: [path.join(__dirname, "entities", "*.{js,ts}")],
-  entities: [UserAccount, ClientDevice, HttpRequest, HttpResponse],
+  entities: [UserAccount, ClientDevice, HttpTask, HttpTaskResponse],
   migrations: [path.join(__dirname, "migrations/*.{js,ts}")],
   subscribers: [],
 });
