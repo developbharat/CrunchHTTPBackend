@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const MainDataSource = new DataSource({
   type: "postgres",
   url: env.dbUrl,
-  synchronize: true,
+  synchronize: !env.isProduction,
   logging: true,
   // entities: [path.join(__dirname, "entities", "*.{js,ts}")],
   entities: [UserAccount, ClientDevice, HttpTask, HttpTaskResponse],

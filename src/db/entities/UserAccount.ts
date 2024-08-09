@@ -12,21 +12,27 @@ import { ServiceException } from "../../common/exceptions";
 import { Random } from "../../common/Random";
 import { CustomIDColumn } from "../columns/CustomIDColumn";
 import argon2 from "argon2";
+import { Field, ID, ObjectType } from "type-graphql";
 
+@ObjectType()
 @Entity({ name: "user_accounts" })
 export class UserAccount extends BaseEntity {
+  @Field(() => ID)
   @CustomIDColumn()
   id: string;
 
+  @Field(() => String)
   @Column({ name: "name", length: 50, nullable: false })
   name: string;
 
+  @Field(() => String)
   @Column({ name: "email", length: 50, nullable: false, unique: true })
   email: string;
 
   @Column({ name: "password", type: "text", nullable: false })
   password: string;
 
+  @Field(() => String)
   @Column({ name: "auth_token", length: 10, nullable: false, unique: true })
   auth_token: string;
 
@@ -38,6 +44,7 @@ export class UserAccount extends BaseEntity {
   })
   auth_token_expires_at: Date;
 
+  @Field(() => Date)
   @CreateDateColumn({ name: "created_at" })
   created_at: Date;
 
@@ -54,24 +61,14 @@ export class UserAccount extends BaseEntity {
     this.password = await argon2.hash(this.password);
   }
 
-  public clean(): UserAccount {
-    return {
-      id: this.id,
-      name: this.name,
-      email: this.email,
-      auth_token: this.auth_token,
-      created_at: this.created_at,
-    } as UserAccount;
-  }
-
-  public static async isAuthTokenValid(auth_token: string, clean: boolean = true) {
+  public static async isAuthTokenValid(auth_token: string): Promise<UserAccount> {
     const device = await this.findOne({
       where: { auth_token: auth_token, auth_token_expires_at: MoreThan(new DateTime()) },
     });
 
     if (!device) throw new ServiceException("Invalid Authorization token provided. ", 400);
 
-    return clean ? device.clean() : device;
+    return device;
   }
 
   public static async signUp(
@@ -87,7 +84,7 @@ export class UserAccount extends BaseEntity {
       email: data.email,
       password: data.password,
     }).save();
-    return account.clean();
+    return account;
   }
 
   private static async isPasswordValid(encoded: string, plain: string): Promise<Boolean> {
@@ -107,6 +104,6 @@ export class UserAccount extends BaseEntity {
     });
 
     // fetch updated data
-    return updated.clean();
+    return updated;
   }
 }

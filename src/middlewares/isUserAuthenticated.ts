@@ -1,11 +1,11 @@
-import { NextFunction, Request, Response } from "express";
+import { MiddlewareFn } from "type-graphql";
 import { ServiceException } from "../common/exceptions";
 import { UserAccount } from "../db/entities/UserAccount";
 
-export const isUserAuthenticated = () => {
-  return async (req: Request, _res: Response, next: NextFunction) => {
+export const isUserAuthenticated = (): MiddlewareFn<IRootContext> => {
+  return async ({ context }, next) => {
     // validate auth token
-    const auth_token = req.headers["authorization"];
+    const auth_token = context.request.headers.get("authorization");
     if (!auth_token || auth_token.length !== 10) {
       throw new ServiceException(
         "Please provide auth_token in authorization header to continue.",
@@ -14,10 +14,10 @@ export const isUserAuthenticated = () => {
     }
 
     // check user_account associated with auth token
-    const user_account = await UserAccount.isAuthTokenValid(auth_token, false);
+    const user_account = await UserAccount.isAuthTokenValid(auth_token);
 
     // attach user account on request
-    req.user_account = user_account;
+    context.user_account = user_account;
     return next();
   };
 };
