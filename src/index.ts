@@ -6,6 +6,7 @@ import { connect_db } from "./db/init";
 import { UserAccountResolver } from "./resolvers/accounts/UserAccountResolver";
 import { DevicesResolver } from "./resolvers/devices/DevicesResolver";
 import { HttpTaskResolver } from "./resolvers/tasks/HttpTaskResolver";
+import path from "path";
 
 // Set serialization for date to iso string always
 Date.prototype.toJSON = function () {
@@ -22,6 +23,8 @@ export const main = async (): Promise<void> => {
     }),
     graphiql: {
       credentials: "include",
+      title: "Crunch HTTP GraphiQL",
+      defaultQuery: await Bun.file(path.join(import.meta.dirname, "playground.graphql")).text(),
     },
     graphqlEndpoint: "/graphql",
     maskedErrors: env.isProduction,

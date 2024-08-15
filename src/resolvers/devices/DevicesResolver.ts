@@ -13,6 +13,12 @@ export class DevicesResolver {
   }
 
   @UseMiddleware(isUserAuthenticated())
+  @Query(() => [ClientDevice])
+  async listUserAccountDevices(@Ctx() { user_account }: IRootContext): Promise<ClientDevice[]> {
+    return await ClientDevice.find({ where: { user_account_id: user_account!!.id } });
+  }
+
+  @UseMiddleware(isUserAuthenticated())
   @Mutation(() => ClientDevice)
   async addNewDevice(
     @Ctx() { user_account }: IRootContext,
@@ -28,13 +34,23 @@ export class DevicesResolver {
 
   @UseMiddleware(isUserAuthenticated())
   @Mutation(() => ClientDevice)
-  async blockDevice(@Arg("data") data: BlockDeviceInput): Promise<ClientDevice> {
-    return await ClientDevice.block({ id: data.device_id, blocked_status: data.reason });
+  async blockDevice(
+    @Ctx() { user_account }: IRootContext,
+    @Arg("data") data: BlockDeviceInput,
+  ): Promise<ClientDevice> {
+    return await ClientDevice.block({
+      id: data.id,
+      blocked_status: data.reason,
+      user_account_id: user_account!!.id,
+    });
   }
 
   @UseMiddleware(isUserAuthenticated())
   @Mutation(() => ClientDevice)
-  async unBlockDevice(@Arg("data") data: UnBlockDeviceInput): Promise<ClientDevice> {
-    return await ClientDevice.unblock({ id: data.device_id });
+  async unBlockDevice(
+    @Ctx() { user_account }: IRootContext,
+    @Arg("data") data: UnBlockDeviceInput,
+  ): Promise<ClientDevice> {
+    return await ClientDevice.unblock({ id: data.id, user_account_id: user_account!!.id });
   }
 }

@@ -22,7 +22,7 @@ export class UserAccount extends BaseEntity {
   id: string;
 
   @Field(() => String)
-  @Column({ name: "name", length: 50, nullable: false })
+  @Column({ name: "name", length: 50, nullable: false, default: "" })
   name: string;
 
   @Field(() => String)
@@ -95,6 +95,9 @@ export class UserAccount extends BaseEntity {
     const old = await this.findOne({ where: { email: data.email } });
     if (!old || !this.isPasswordValid(old.password, data.password))
       throw new ServiceException("Invalid password provided.");
+
+    // Return old account if auth token is still valid
+    if (new DateTime().isLessThan(old.auth_token_expires_at)) return old;
 
     // Update auth token
     const updated = await this.save({

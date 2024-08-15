@@ -66,13 +66,30 @@ export class ClientDevice extends BaseEntity {
     }).save();
   }
 
-  public static async unblock(data: Pick<ClientDevice, "id">): Promise<ClientDevice> {
+  public static async unblock(
+    data: Pick<ClientDevice, "id" | "user_account_id">,
+  ): Promise<ClientDevice> {
+    // Check if device exists with provided id
+    const exists = await this.findOne({
+      where: { id: data.id, user_account_id: data.user_account_id },
+      select: { id: true },
+    });
+    if (!exists) throw new ServiceException("Device with provided id doesn't exist", 400);
+
+    // Update device with provided id
     return await this.save({ id: data.id, blocked_at: null, blocked_status: null });
   }
 
   public static async block(
-    data: Pick<ClientDevice, "id" | "blocked_status">,
+    data: Pick<ClientDevice, "id" | "blocked_status" | "user_account_id">,
   ): Promise<ClientDevice> {
+    // Check if device exists with provided id
+    const exists = await this.findOne({
+      where: { id: data.id, user_account_id: data.user_account_id },
+      select: { id: true },
+    });
+    if (!exists) throw new ServiceException("Device with provided id doesn't exist", 400);
+
     return await this.save({
       id: data.id,
       blocked_at: new Date(),

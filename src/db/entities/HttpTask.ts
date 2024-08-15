@@ -57,9 +57,8 @@ export class HttpTask extends BaseEntity {
   })
   status: HttpTaskStatus;
 
-  @Field(() => ID)
-  @CustomRelIDColumn({ name: "device_id" })
-  device_id: string;
+  @CustomRelIDColumn({ name: "user_account_id" })
+  user_account_id: string;
 
   @Field(() => Date)
   @CreateDateColumn({ name: "created_at" })
@@ -88,7 +87,7 @@ export class HttpTask extends BaseEntity {
       | "success_status_codes"
       | "max_retries"
       | "expires_at"
-      | "device_id"
+      | "user_account_id"
     >,
   ): Promise<HttpTask> {
     const request = await this.create({
@@ -98,7 +97,7 @@ export class HttpTask extends BaseEntity {
       success_status_codes: data.success_status_codes,
       max_retries: data.max_retries,
       expires_at: data.expires_at,
-      device_id: data.device_id,
+      user_account_id: data.user_account_id,
     }).save();
 
     return request.clean();

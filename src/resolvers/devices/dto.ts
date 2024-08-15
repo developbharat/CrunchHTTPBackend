@@ -16,7 +16,7 @@ export class AddNewDeviceInput {
 @InputType()
 export class BlockDeviceInput {
   @Field(() => ID)
-  device_id: string;
+  id: string;
 
   @Field(() => String)
   reason: string;
@@ -25,5 +25,5 @@ export class BlockDeviceInput {
 @InputType()
 export class UnBlockDeviceInput {
   @Field(() => ID)
-  device_id: string;
+  id: string;
 }

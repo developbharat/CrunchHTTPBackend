@@ -1,4 +1,4 @@
-import { Field, InputType, Int } from "type-graphql";
+import { Field, ID, InputType, Int } from "type-graphql";
 import { HttpTaskMethod } from "../../db/enums/HttpTaskMethod";
 
 @InputType()
@@ -26,4 +26,14 @@ export class CreateHttpTaskInput {
 
   @Field(() => [Int])
   success_status_codes: number[];
+}
+
+@InputType()
+export class ListUserAccountTasksInput {
+  @Field(() => ID, { nullable: true })
+  latest_task_id: string | null;
+
+  // TODO: limit this field to max value of 1000
+  @Field(() => Int, { defaultValue: 1000 })
+  limit: number;
 }

@@ -1,0 +1,123 @@
+query whoami {
+  whoami {
+    id
+    name
+    email
+    auth_token
+    created_at
+  }
+}
+
+query isDeviceAuthenticated {
+  isDeviceAuthenticated {
+    id
+    name
+    device_id
+    device_type
+    created_at
+  }
+}
+
+query listUserAccountTasks {
+  listUserAccountTasks(data: { latest_task_id: null, limit: 50 }) {
+    id
+    method
+    path
+    headers
+    data
+    success_status_codes
+    max_retries
+    expires_at
+    status
+    created_at
+  }
+}
+
+query listUserAccountDevices {
+  listUserAccountDevices {
+    id
+    name
+    device_id
+    device_type
+    created_at
+  }
+}
+
+mutation createUserAccount {
+  createUserAccount(
+    data: { name: "Test Account", email: "sample@gmail.com", password: "Password123" }
+  ) {
+    id
+    name
+    email
+    auth_token
+    created_at
+  }
+}
+
+mutation signIn {
+  signIn(data: { email: "sample@gmail.com", password: "Password123" }) {
+    id
+    name
+    email
+    auth_token
+    created_at
+  }
+}
+
+mutation addNewDevice {
+  addNewDevice(
+    data: { name: "Samsung Galaxy S20", device_id: "ig0gzencu1yb6ffq", device_type: ANDROID }
+  ) {
+    id
+    name
+    device_id
+    device_type
+    created_at
+  }
+}
+
+mutation blockDevice {
+  blockDevice(data: { id: "aX2Y43XyYP", reason: "Lost Android Device" }) {
+    id
+    name
+    device_id
+    device_type
+    created_at
+  }
+}
+
+mutation unBlockDevice {
+  unBlockDevice(data: { id: "aX2Y43XyYP" }) {
+    id
+    name
+    device_id
+    device_type
+    created_at
+  }
+}
+
+mutation createNewHttpTask {
+  createNewHttpTask(
+    data: {
+      path: "https://jsonplaceholder.typicode.com/posts"
+      method: POST
+      data: "{\"title\":\"foo\",\"body\":\"bar\",\"userId\":1}"
+      expires_at: "2024-08-15T12:13:03.877Z"
+      headers: "{\"Content-type\":\"application/json; charset=UTF-8\"}"
+      max_retries: 5
+      success_status_codes: [200]
+    }
+  ) {
+    id
+    method
+    path
+    headers
+    data
+    success_status_codes
+    max_retries
+    expires_at
+    status
+    created_at
+  }
+}
