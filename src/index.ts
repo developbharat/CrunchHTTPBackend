@@ -7,6 +7,7 @@ import { UserAccountResolver } from "./resolvers/accounts/UserAccountResolver";
 import { DevicesResolver } from "./resolvers/devices/DevicesResolver";
 import { HttpTaskResolver } from "./resolvers/tasks/HttpTaskResolver";
 import path from "path";
+import { HttpTask } from "./db/entities/HttpTask";
 
 // Set serialization for date to iso string always
 Date.prototype.toJSON = function () {
@@ -33,6 +34,11 @@ export const main = async (): Promise<void> => {
 
   Bun.serve({ fetch: yoga, hostname: env.host, port: env.port });
   console.log(`Server started at: http://${env.host}:${env.port}`);
+
+  // Reset device_id from tasks which were not completed within 15minutes from updated_at
+  setInterval(async () => {
+    await HttpTask.resetFrozenTasksFromMinutes(15);
+  }, 5 * 1000); // Every 5 minutes
 };
 
 main().catch(console.error);

@@ -2,7 +2,9 @@ import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql
 import { HttpTask } from "../../db/entities/HttpTask";
 import { CreateHttpTaskInput, ListUserAccountTasksInput } from "./dto";
 import { isUserAuthenticated } from "../../middlewares/isUserAuthenticated";
-import { MoreThan } from "typeorm";
+import { IsNull, MoreThan } from "typeorm";
+import { isDeviceAuthenticated } from "../../middlewares/isDeviceAuthenticated";
+import { HttpTaskStatus } from "../../db/enums/HttpTaskStatus";
 
 @Resolver()
 export class HttpTaskResolver {
@@ -38,6 +40,38 @@ export class HttpTaskResolver {
         id: data.latest_task_id ? MoreThan(data.latest_task_id) : undefined,
       },
       take: data.limit,
+    });
+  }
+
+  @UseMiddleware(isDeviceAuthenticated())
+  @Query(() => [HttpTask], {
+    description: "Allows an authenticated device to list http tasks to work with.",
+  })
+  public async listClientDeviceTasks(@Ctx() { client_device }: IRootContext): Promise<HttpTask[]> {
+    const oldTasksCount = await HttpTask.count({
+      where: {
+        device_id: client_device?.id,
+        status: HttpTaskStatus.IN_PROGRESS,
+      },
+      take: 1000,
+    });
+
+    // return blank array incase device has 1000 already pending tasks.
+    if (oldTasksCount == 1000) return [];
+
+    // Assign 1000 tasks to this current device
+    await HttpTask.update(
+      { status: HttpTaskStatus.CREATED, device_id: IsNull() },
+      { device_id: client_device!!.id },
+    );
+
+    // Return tasks allocated to provided device.
+    return await HttpTask.find({
+      where: {
+        device_id: client_device!!.id,
+        status: HttpTaskStatus.CREATED,
+      },
+      take: 1000,
     });
   }
 }

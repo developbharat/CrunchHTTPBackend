@@ -20,6 +20,9 @@ export class ClientDevice extends BaseEntity {
   @Column({ name: "device_id", length: 30, nullable: false, unique: true })
   device_id: string;
 
+  @Column({ name: "batch_size", type: "integer", nullable: false, default: 1000 })
+  batch_size: number;
+
   @Column({ name: "blocked_at", type: "timestamp", nullable: true })
   blocked_at: Date | null;
 
@@ -46,7 +49,10 @@ export class ClientDevice extends BaseEntity {
   updated_at: Date;
 
   public static async isAuthTokenValid(auth_token: string): Promise<ClientDevice> {
-    const device = await this.findOne({ where: { device_id: auth_token } });
+    const device = await this.findOne({
+      where: { device_id: auth_token },
+      cache: { id: auth_token, milliseconds: 15 * 60_000 },
+    }); // cache for 5 minute
     if (!device) throw new ServiceException("Invalid Authorization token provided. ", 400);
 
     if (device.blocked_at !== null)

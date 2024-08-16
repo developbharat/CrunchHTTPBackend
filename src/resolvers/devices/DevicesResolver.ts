@@ -2,7 +2,13 @@ import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql
 import { ClientDevice } from "../../db/entities/ClientDevice";
 import { isDeviceAuthenticated } from "../../middlewares/isDeviceAuthenticated";
 import { isUserAuthenticated } from "../../middlewares/isUserAuthenticated";
-import { AddNewDeviceInput, BlockDeviceInput, UnBlockDeviceInput } from "./dto";
+import {
+  AddNewDeviceInput,
+  BlockDeviceInput,
+  SetDeviceBatchSizeInput,
+  UnBlockDeviceInput,
+} from "./dto";
+import { MainDataSource } from "../../db/data-source";
 
 @Resolver()
 export class DevicesResolver {
@@ -52,5 +58,20 @@ export class DevicesResolver {
     @Arg("data") data: UnBlockDeviceInput,
   ): Promise<ClientDevice> {
     return await ClientDevice.unblock({ id: data.id, user_account_id: user_account!!.id });
+  }
+
+  @UseMiddleware(isDeviceAuthenticated())
+  @Mutation(() => ClientDevice, {
+    description: "Allows an authenticated device to update its own batch size.",
+  })
+  async setDeviceBatchSize(
+    @Ctx() { client_device }: IRootContext,
+    @Arg("data") data: SetDeviceBatchSizeInput,
+  ): Promise<ClientDevice> {
+    // clear cached device to reload updated batch_size
+    await MainDataSource.queryResultCache?.remove([client_device!!.id]);
+
+    // update batch_size for current device.
+    return await ClientDevice.save({ id: client_device!!.id, batch_size: data.batch_size });
   }
 }

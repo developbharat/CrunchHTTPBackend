@@ -1,9 +1,10 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, LessThan, UpdateDateColumn } from "typeorm";
 import { CustomIDColumn } from "../columns/CustomIDColumn";
 import { CustomRelIDColumn } from "../columns/CustomRelIDColumn";
 import { HttpTaskMethod } from "../enums/HttpTaskMethod";
 import { HttpTaskStatus } from "../enums/HttpTaskStatus";
 import { Field, ID, Int, ObjectType } from "type-graphql";
+import { DateTime } from "../../common/DateTime";
 
 @ObjectType()
 @Entity({ name: "http_tasks" })
@@ -60,6 +61,9 @@ export class HttpTask extends BaseEntity {
   @CustomRelIDColumn({ name: "user_account_id" })
   user_account_id: string;
 
+  @CustomRelIDColumn({ name: "device_id", nullable: true })
+  device_id: string | null;
+
   @Field(() => Date)
   @CreateDateColumn({ name: "created_at" })
   created_at: Date;
@@ -101,5 +105,15 @@ export class HttpTask extends BaseEntity {
     }).save();
 
     return request.clean();
+  }
+
+  public static async resetFrozenTasksFromMinutes(minutes: number): Promise<void> {
+    await this.update(
+      {
+        status: HttpTaskStatus.IN_PROGRESS,
+        updated_at: LessThan(new DateTime().subtractMinutes(minutes)),
+      },
+      { device_id: null },
+    );
   }
 }
