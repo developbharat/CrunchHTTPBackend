@@ -1,4 +1,3 @@
-import { NextFunction, Request, Response } from "express";
 import { ServiceException } from "../common/exceptions";
 import { ClientDevice } from "../db/entities/ClientDevice";
 import { MiddlewareFn } from "type-graphql";
@@ -15,7 +14,7 @@ export const isDeviceAuthenticated = (): MiddlewareFn<IRootContext> => {
     }
 
     // check user_account associated with auth token
-    const device = await ClientDevice.isAuthTokenValid(auth_token, false);
+    const device = await ClientDevice.isAuthTokenValid(auth_token);
 
     // attach user account on request
     context.client_device = device;
