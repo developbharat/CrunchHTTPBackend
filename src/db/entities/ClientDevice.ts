@@ -17,7 +17,7 @@ export class ClientDevice extends BaseEntity {
   name: string;
 
   @Field(() => String)
-  @Column({ name: "device_id", length: 10, nullable: false, unique: true })
+  @Column({ name: "device_id", length: 30, nullable: false, unique: true })
   device_id: string;
 
   @Column({ name: "blocked_at", type: "timestamp", nullable: true })

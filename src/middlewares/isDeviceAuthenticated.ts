@@ -7,7 +7,7 @@ export const isDeviceAuthenticated = (): MiddlewareFn<IRootContext> => {
   return async ({ context }, next) => {
     // validate auth token
     const auth_token = context.request.headers.get("authorization");
-    if (!auth_token || auth_token.length !== 10) {
+    if (!auth_token || auth_token.length < 10) {
       throw new ServiceException(
         "Please provide auth_token in authorization header to continue.",
         401,
