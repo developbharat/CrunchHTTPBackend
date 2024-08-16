@@ -22,7 +22,7 @@ export class HttpTaskResponse extends BaseEntity {
   status_code: number;
 
   @Column({ name: "is_success", type: "boolean", nullable: false })
-  is_success: number;
+  is_success: boolean;
 
   @CustomRelIDColumn({ name: "task_id" })
   task_id: string;

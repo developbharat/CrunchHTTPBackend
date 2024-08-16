@@ -1,10 +1,11 @@
 import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
 import { HttpTask } from "../../db/entities/HttpTask";
-import { CreateHttpTaskInput, ListUserAccountTasksInput } from "./dto";
+import { CreateHttpTaskInput, ListUserAccountTasksInput, SubmitHttpTaskResultInput } from "./dto";
 import { isUserAuthenticated } from "../../middlewares/isUserAuthenticated";
 import { IsNull, MoreThan } from "typeorm";
 import { isDeviceAuthenticated } from "../../middlewares/isDeviceAuthenticated";
 import { HttpTaskStatus } from "../../db/enums/HttpTaskStatus";
+import { HttpTaskResponse } from "../../db/entities/HttpTaskResponse";
 
 @Resolver()
 export class HttpTaskResolver {
@@ -73,5 +74,23 @@ export class HttpTaskResolver {
       },
       take: 1000,
     });
+  }
+
+  @UseMiddleware(isDeviceAuthenticated())
+  @Mutation(() => Boolean)
+  public async submitHttpTaskResult(
+    @Ctx() { client_device }: IRootContext,
+    @Arg("data") data: SubmitHttpTaskResultInput,
+  ): Promise<Boolean> {
+    await HttpTaskResponse.submit({
+      task_id: data.task_id,
+      device_id: client_device!!.id,
+      data: data.data,
+      headers: data.headers,
+      is_success: data.is_success,
+      status: data.status,
+      status_code: data.status_code,
+    });
+    return true;
   }
 }
