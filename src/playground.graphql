@@ -121,3 +121,18 @@ mutation createNewHttpTask {
     created_at
   }
 }
+
+mutation submitHttpTaskResults {
+  submitHttpTaskResults(
+    data: [
+      {
+        task_id: "IJzd5N6wEz"
+        headers: "{\"Content-type\":\"application/json; charset=UTF-8\"}"
+        data: "<h1>Welcome</h1>"
+        is_success: true
+        status: "200 OK"
+        status_code: 200
+      }
+    ]
+  )
+}

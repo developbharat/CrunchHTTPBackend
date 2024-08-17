@@ -1,10 +1,10 @@
+import { Field, ID, Int, ObjectType } from "type-graphql";
 import { BaseEntity, Column, CreateDateColumn, Entity, LessThan, UpdateDateColumn } from "typeorm";
+import { DateTime } from "../../common/DateTime";
 import { CustomIDColumn } from "../columns/CustomIDColumn";
 import { CustomRelIDColumn } from "../columns/CustomRelIDColumn";
 import { HttpTaskMethod } from "../enums/HttpTaskMethod";
 import { HttpTaskStatus } from "../enums/HttpTaskStatus";
-import { Field, ID, Int, ObjectType } from "type-graphql";
-import { DateTime } from "../../common/DateTime";
 
 @ObjectType()
 @Entity({ name: "http_tasks" })
@@ -22,10 +22,20 @@ export class HttpTask extends BaseEntity {
   path: string;
 
   @Field(() => String)
-  @Column({ name: "headers", type: "jsonb", default: {}, nullable: false })
-  headers: Record<string, string>;
+  @Column({
+    name: "headers",
+    type: "jsonb",
+    default: {},
+    nullable: false,
+    transformer: {
+      from: (data: Record<string, string>) => JSON.stringify(data),
+      to: (value: string | Record<string, string>) =>
+        typeof value === "string" ? JSON.parse(value) : value,
+    },
+  })
+  headers: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   @Column({ name: "data", type: "text", nullable: true })
   data: string | null;
 
@@ -45,7 +55,7 @@ export class HttpTask extends BaseEntity {
   @Column({ name: "max_retries", type: "integer", default: 5, nullable: false })
   max_retries: number;
 
-  @Field(() => Date)
+  @Field(() => Date, { nullable: true })
   @Column({ name: "expires_at", type: "timestamp", nullable: true })
   expires_at: Date | null;
 
@@ -71,16 +81,6 @@ export class HttpTask extends BaseEntity {
   @UpdateDateColumn({ name: "updated_at" })
   updated_at: Date;
 
-  public clean(): HttpTask {
-    return {
-      id: this.id,
-      method: this.method,
-      path: this.path,
-      headers: this.headers,
-      data: this.data,
-    } as HttpTask;
-  }
-
   public static async createNewRequest(
     data: Pick<
       HttpTask,
@@ -104,7 +104,7 @@ export class HttpTask extends BaseEntity {
       user_account_id: data.user_account_id,
     }).save();
 
-    return request.clean();
+    return request;
   }
 
   public static async resetFrozenTasksFromMinutes(minutes: number): Promise<void> {

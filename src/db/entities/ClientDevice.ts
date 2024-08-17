@@ -6,7 +6,7 @@ import { CustomRelIDColumn } from "../columns/CustomRelIDColumn";
 import { DeviceType } from "../enums/DeviceType";
 
 @ObjectType()
-@Entity({ name: "clients" })
+@Entity({ name: "client_devices" })
 export class ClientDevice extends BaseEntity {
   @Field(() => ID)
   @CustomIDColumn()

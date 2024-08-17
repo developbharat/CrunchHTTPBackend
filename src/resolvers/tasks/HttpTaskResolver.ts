@@ -1,11 +1,11 @@
-import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
-import { HttpTask } from "../../db/entities/HttpTask";
-import { CreateHttpTaskInput, ListUserAccountTasksInput, SubmitHttpTaskResultInput } from "./dto";
-import { isUserAuthenticated } from "../../middlewares/isUserAuthenticated";
+import { Arg, Ctx, ID, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
 import { IsNull, MoreThan } from "typeorm";
-import { isDeviceAuthenticated } from "../../middlewares/isDeviceAuthenticated";
-import { HttpTaskStatus } from "../../db/enums/HttpTaskStatus";
+import { HttpTask } from "../../db/entities/HttpTask";
 import { HttpTaskResponse } from "../../db/entities/HttpTaskResponse";
+import { HttpTaskStatus } from "../../db/enums/HttpTaskStatus";
+import { isDeviceAuthenticated } from "../../middlewares/isDeviceAuthenticated";
+import { isUserAuthenticated } from "../../middlewares/isUserAuthenticated";
+import { CreateHttpTaskInput, ListUserAccountTasksInput, SubmitHttpTaskResultInput } from "./dto";
 
 @Resolver()
 export class HttpTaskResolver {
@@ -21,7 +21,7 @@ export class HttpTaskResolver {
       data: data.data,
       user_account_id: user_account!!.id,
       expires_at: data.expires_at,
-      headers: JSON.parse(data.headers),
+      headers: data.headers,
       max_retries: data.max_retries,
       success_status_codes: data.success_status_codes,
     });
@@ -77,20 +77,21 @@ export class HttpTaskResolver {
   }
 
   @UseMiddleware(isDeviceAuthenticated())
-  @Mutation(() => Boolean)
-  public async submitHttpTaskResult(
+  @Mutation(() => [ID])
+  public async submitHttpTaskResults(
     @Ctx() { client_device }: IRootContext,
-    @Arg("data") data: SubmitHttpTaskResultInput,
-  ): Promise<Boolean> {
-    await HttpTaskResponse.submit({
-      task_id: data.task_id,
-      device_id: client_device!!.id,
-      data: data.data,
-      headers: data.headers,
-      is_success: data.is_success,
-      status: data.status,
-      status_code: data.status_code,
-    });
-    return true;
+    @Arg("data", () => [SubmitHttpTaskResultInput]) data: SubmitHttpTaskResultInput[],
+  ): Promise<string[]> {
+    return await HttpTaskResponse.submit(
+      data.map((item) => ({
+        task_id: item.task_id,
+        device_id: client_device!!.id,
+        data: item.data,
+        headers: item.headers,
+        is_success: item.is_success,
+        status: item.status,
+        status_code: item.status_code,
+      })),
+    );
   }
 }

@@ -93,18 +93,16 @@ export class UserAccount extends BaseEntity {
 
   public static async signIn(data: Pick<UserAccount, "email" | "password">): Promise<UserAccount> {
     const old = await this.findOne({ where: { email: data.email } });
-    if (!old || !this.isPasswordValid(old.password, data.password))
+    if (!old || !(await this.isPasswordValid(old.password, data.password)))
       throw new ServiceException("Invalid password provided.");
 
     // Return old account if auth token is still valid
     if (new DateTime().isLessThan(old.auth_token_expires_at)) return old;
 
     // Update auth token
-    const updated = await this.save({
-      id: old.id,
-      auth_token: Random.authToken(),
-      auth_token_expires_at: new DateTime().addHours(12),
-    });
+    old.auth_token = Random.authToken();
+    old.auth_token_expires_at = new DateTime().addHours(12);
+    const updated = await this.save(old);
 
     // fetch updated data
     return updated;
