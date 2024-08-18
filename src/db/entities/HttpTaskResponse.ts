@@ -4,6 +4,7 @@ import { CustomRelIDColumn } from "../columns/CustomRelIDColumn";
 import { Field, ID, Int, ObjectType } from "type-graphql";
 import { HttpTaskStatus } from "../enums/HttpTaskStatus";
 import { HttpTask } from "./HttpTask";
+import { parseJson } from "../../common/utils";
 
 @ObjectType()
 @Entity({ name: "http_task_responses" })
@@ -21,7 +22,7 @@ export class HttpTaskResponse extends BaseEntity {
     transformer: {
       from: (data: Record<string, string>) => JSON.stringify(data),
       to: (value: string | Record<string, string>) =>
-        typeof value === "string" ? JSON.parse(value) : value,
+        typeof value === "string" ? parseJson(value, {}) : value,
     },
   })
   headers: string;
