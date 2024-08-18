@@ -1,7 +1,9 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, In, UpdateDateColumn } from "typeorm";
 import { CustomIDColumn } from "../columns/CustomIDColumn";
 import { CustomRelIDColumn } from "../columns/CustomRelIDColumn";
 import { Field, ID, Int, ObjectType } from "type-graphql";
+import { HttpTaskStatus } from "../enums/HttpTaskStatus";
+import { HttpTask } from "./HttpTask";
 
 @ObjectType()
 @Entity({ name: "http_task_responses" })
@@ -59,11 +61,16 @@ export class HttpTaskResponse extends BaseEntity {
     >[],
   ): Promise<string[]> {
     const inserts = await this.createQueryBuilder()
+      .useTransaction(true)
       .insert()
       .orIgnore()
       .values(data)
-      .returning(["id"])
+      .returning("id")
       .execute();
+    await HttpTask.update(
+      data.map((item) => item.task_id),
+      { status: HttpTaskStatus.COMPLETED },
+    );
 
     return inserts.identifiers.filter(Boolean).map((item) => item.id);
   }

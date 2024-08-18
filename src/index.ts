@@ -10,7 +10,7 @@ import path from "path";
 import { HttpTask } from "./db/entities/HttpTask";
 
 // Set serialization for date to iso string always
-Date.prototype.toJSON = function () {
+Date.prototype.toJSON = function() {
   return this.getTime() as unknown as string;
 };
 
@@ -38,7 +38,7 @@ export const main = async (): Promise<void> => {
   // Reset device_id from tasks which were not completed within 15minutes from updated_at
   setInterval(async () => {
     await HttpTask.resetFrozenTasksFromMinutes(15);
-  }, 5 * 1000); // Every 5 minutes
+  }, 15 * 1000); // Every 15 seconds 
 };
 
 main().catch(console.error);

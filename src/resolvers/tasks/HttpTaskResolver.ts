@@ -1,5 +1,5 @@
 import { Arg, Ctx, ID, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
-import { IsNull, MoreThan } from "typeorm";
+import { In, MoreThan } from "typeorm";
 import { HttpTask } from "../../db/entities/HttpTask";
 import { HttpTaskResponse } from "../../db/entities/HttpTaskResponse";
 import { HttpTaskStatus } from "../../db/enums/HttpTaskStatus";
@@ -51,29 +51,40 @@ export class HttpTaskResolver {
   public async listClientDeviceTasks(@Ctx() { client_device }: IRootContext): Promise<HttpTask[]> {
     const oldTasksCount = await HttpTask.count({
       where: {
-        device_id: client_device?.id,
+        device_id: client_device!!.id,
         status: HttpTaskStatus.IN_PROGRESS,
       },
       take: 1000,
     });
 
     // return blank array incase device has 1000 already pending tasks.
-    if (oldTasksCount == 1000) return [];
+    if (oldTasksCount >= 1000) return [];
 
     // Assign 1000 tasks to this current device
-    await HttpTask.update(
-      { status: HttpTaskStatus.CREATED, device_id: IsNull() },
-      { device_id: client_device!!.id },
-    );
 
-    // Return tasks allocated to provided device.
-    return await HttpTask.find({
-      where: {
-        device_id: client_device!!.id,
-        status: HttpTaskStatus.CREATED,
-      },
-      take: 1000,
+    // Find 1000 records where status is CREATED and device_id is null
+    const where = HttpTask.createQueryBuilder()
+      .subQuery()
+      .select("id")
+      .from(HttpTask, "task")
+      .where("task.status = :task_status", { task_status: HttpTaskStatus.CREATED })
+      .andWhere("task.device_id IS NULL")
+      .limit(5);
+    const updatedItems = await HttpTask.createQueryBuilder()
+      .setLock("pessimistic_write")
+      .useTransaction(true)
+      .update()
+      .set({ device_id: client_device!!.id, status: HttpTaskStatus.IN_PROGRESS })
+      .where("id IN " + where.getQuery())
+      .setParameters(where.getParameters())
+      .returning("id")
+      .execute();
+
+    // Find all updated records
+    const tasks = await HttpTask.find({
+      where: { id: In(updatedItems.raw.map((item: { id: string }) => item.id)) },
     });
+    return tasks;
   }
 
   @UseMiddleware(isDeviceAuthenticated())

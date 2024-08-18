@@ -136,3 +136,18 @@ mutation submitHttpTaskResults {
     ]
   )
 }
+
+query listClientDeviceTasks {
+  listClientDeviceTasks {
+    id
+    method
+    path
+    headers
+    data
+    success_status_codes
+    max_retries
+    expires_at
+    status
+    created_at
+  }
+}

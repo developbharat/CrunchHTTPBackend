@@ -98,6 +98,7 @@ export class HttpTask extends BaseEntity {
       method: data.method,
       path: data.path,
       headers: data.headers,
+      data: data.data,
       success_status_codes: data.success_status_codes,
       max_retries: data.max_retries,
       expires_at: data.expires_at,
@@ -113,7 +114,7 @@ export class HttpTask extends BaseEntity {
         status: HttpTaskStatus.IN_PROGRESS,
         updated_at: LessThan(new DateTime().subtractMinutes(minutes)),
       },
-      { device_id: null },
+      { device_id: null, status: HttpTaskStatus.CREATED },
     );
   }
 }

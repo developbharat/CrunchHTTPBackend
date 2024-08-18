@@ -48,7 +48,7 @@ export class SubmitHttpTaskResultInput {
 
   @Field(() => String, {
     description:
-      "A stringified JSON object with (Key: String) and (Value: String). Ex: {'accepts': '*/*'}",
+      "A stringified JSON object with (Key: String) and (Value: String). Ex: {'accepts': 'application/json'}",
   })
   headers: string;
 

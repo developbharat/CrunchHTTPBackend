@@ -30,6 +30,9 @@ export class DevicesResolver {
     @Ctx() { user_account }: IRootContext,
     @Arg("data") data: AddNewDeviceInput,
   ): Promise<ClientDevice> {
+    // clear cached device to reload updated batch_size
+    await MainDataSource.queryResultCache?.remove([data.device_id]);
+
     return await ClientDevice.addNewDevice({
       name: data.name,
       device_id: data.device_id,

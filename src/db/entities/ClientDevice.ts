@@ -52,7 +52,8 @@ export class ClientDevice extends BaseEntity {
     const device = await this.findOne({
       where: { device_id: auth_token },
       cache: { id: auth_token, milliseconds: 15 * 60_000 },
-    }); // cache for 5 minute
+    }); // cache for 15 minute
+
     if (!device) throw new ServiceException("Invalid Authorization token provided. ", 400);
 
     if (device.blocked_at !== null)
