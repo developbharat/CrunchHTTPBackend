@@ -6,6 +6,7 @@ import { HttpTaskStatus } from "../../db/enums/HttpTaskStatus";
 import { isDeviceAuthenticated } from "../../middlewares/isDeviceAuthenticated";
 import { isUserAuthenticated } from "../../middlewares/isUserAuthenticated";
 import { CreateHttpTaskInput, ListUserAccountTasksInput, SubmitHttpTaskResultInput } from "./dto";
+import { DateTime } from "../../common/DateTime";
 
 @Resolver()
 export class HttpTaskResolver {
@@ -60,8 +61,6 @@ export class HttpTaskResolver {
     // return blank array incase device has 1000 already pending tasks.
     if (oldTasksCount >= 1000) return [];
 
-    // Assign 1000 tasks to this current device
-
     // Find 1000 records where status is CREATED and device_id is null
     const where = HttpTask.createQueryBuilder()
       .subQuery()
@@ -69,9 +68,10 @@ export class HttpTaskResolver {
       .from(HttpTask, "task")
       .where("task.status = :task_status", { task_status: HttpTaskStatus.CREATED })
       .andWhere("task.device_id IS NULL")
-      .limit(5);
+      .limit(1000);
+
+    // Assign 1000 tasks to this current device
     const updatedItems = await HttpTask.createQueryBuilder()
-      .setLock("pessimistic_write")
       .useTransaction(true)
       .update()
       .set({ device_id: client_device!!.id, status: HttpTaskStatus.IN_PROGRESS })
@@ -80,9 +80,16 @@ export class HttpTaskResolver {
       .returning("id")
       .execute();
 
+    // Return blank array incase no task was assigned
+    if (updatedItems.affected === 0) return [];
+
     // Find all updated records
     const tasks = await HttpTask.find({
-      where: { id: In(updatedItems.raw.map((item: { id: string }) => item.id)) },
+      where: {
+        device_id: client_device!!.id,
+        status: HttpTaskStatus.IN_PROGRESS,
+        updated_at: MoreThan(new DateTime().subtractMinutes(1)),
+      },
     });
     return tasks;
   }
