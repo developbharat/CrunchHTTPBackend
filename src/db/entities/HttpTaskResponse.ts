@@ -61,6 +61,8 @@ export class HttpTaskResponse extends BaseEntity {
       "headers" | "data" | "status" | "status_code" | "is_success" | "task_id" | "device_id"
     >[],
   ): Promise<string[]> {
+    if (data.length === 0) return [];
+
     const inserts = await this.createQueryBuilder()
       .useTransaction(true)
       .insert()
